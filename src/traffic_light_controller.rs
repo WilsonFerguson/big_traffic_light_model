@@ -32,6 +32,13 @@ impl TrafficLightController {
         }
     }
 
+    pub fn fix_delays(&mut self, dt: f64, target_dt: f64) {
+        let delay = target_dt - dt;
+        for traffic_light in &mut self.traffic_lights {
+            traffic_light.fix_delay(delay);
+        }
+    }
+
     pub fn update(&mut self) {
         let queue_lengths: Vec<usize> = self
             .traffic_lights

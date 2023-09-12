@@ -27,26 +27,6 @@ pub enum Origin {
     West,
 }
 
-impl Origin {
-    pub fn right(&self) -> Origin {
-        match self {
-            Origin::North => Origin::East,
-            Origin::South => Origin::West,
-            Origin::East => Origin::South,
-            Origin::West => Origin::North,
-        }
-    }
-
-    pub fn left(&self) -> Origin {
-        match self {
-            Origin::North => Origin::West,
-            Origin::South => Origin::East,
-            Origin::East => Origin::North,
-            Origin::West => Origin::South,
-        }
-    }
-}
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum Direction {
     Left,
@@ -160,6 +140,10 @@ impl Car {
     }
 
     fn automatically_stop(&mut self, cars: &Vec<Car>) {
+        if self.through_intersection {
+            return;
+        }
+
         let closest_distance = self.get_distance_to_closest_car(cars);
         // Make sure cars that are on top of each other don't stop
         if !self.stopped && closest_distance < CAR_WIDTH * 2.0 && closest_distance > 3.0 {
@@ -176,30 +160,6 @@ impl Car {
             self.stopped = false;
             return;
         }
-
-        // // Red clearance time
-        // if !traffic_light.is_green(self.origin, self.direction) {
-        //     if self.path_index_on_red_change.is_none() {
-        //         self.path_index_on_red_change = Some(self.path_index);
-        //     }
-        //
-        //     // Allow cars in intersection to clear
-        //     if let Some(past_green) = traffic_light.past_green() {
-        //         if past_green == self.origin
-        //             && self.path_index_on_red_change.unwrap() >= self.path_index_at_intersection
-        //         {
-        //             self.through_intersection = true;
-        //             self.stopped = false;
-        //         } else if self.path_index == self.path_index_at_intersection {
-        //             self.stopped = true;
-        //         }
-        //     } else {
-        //         if self.path_index == self.path_index_at_intersection {
-        //             self.stopped = true;
-        //         }
-        //     }
-        //     return;
-        // }
 
         let mut can_go = traffic_light.is_green(self.origin, self.direction);
         // If it's red but I'm not at the intersection, I can keep going

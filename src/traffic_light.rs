@@ -75,6 +75,20 @@ impl TrafficLight {
         }
     }
 
+    pub fn fix_delay(&mut self, delay_secs: f64) {
+        // When positive delay, that means that the frame took less time than expected. This means that we need to subtract that time from the timers.
+        // When the delay is negative, we need to add that time to the timers.
+        if delay_secs > 0.0 {
+            self.green_start -= Duration::from_secs_f64(delay_secs);
+            self.red_start -= Duration::from_secs_f64(delay_secs);
+            self.change_to_green_start -= Duration::from_secs_f64(delay_secs);
+        } else {
+            self.green_start += Duration::from_secs_f64(-delay_secs);
+            self.red_start += Duration::from_secs_f64(-delay_secs);
+            self.change_to_green_start += Duration::from_secs_f64(-delay_secs);
+        }
+    }
+
     pub fn change_to_red(&mut self) {
         self.red_start = Instant::now();
         self.state = TrafficLightState::Yellow;

@@ -144,7 +144,7 @@ fn main() {
     let mut id: usize = 0;
 
     let mut spawn_start = Instant::now();
-    let mut spawn_increment = time::Duration::from_millis(800);
+    let mut spawn_increment = time::Duration::from_millis(650);
     let origins = [
         car::Origin::North,
         car::Origin::South,
@@ -166,43 +166,6 @@ fn main() {
             draw_map(&context, graphics);
 
             let cars_clone = cars.clone();
-            // if !paused {
-            //     traffic_light.update();
-            //
-            //     if spawn_start.elapsed() >= spawn_increment {
-            //         let minimum_time = 400.0;
-            //         spawn_increment = time::Duration::from_millis(
-            //             (spawn_increment.as_millis() as f64 * 0.9975).max(minimum_time) as u64,
-            //         );
-            //
-            //         let mut origin = origins[rand::thread_rng().gen_range(0..origins.len())];
-            //         if spawn_increment.as_millis() <= 700 {
-            //             origin = origins[origin_index];
-            //             origin_index = (origin_index + 1) % origins.len();
-            //         }
-            //         let direction = car::Direction::from(rand::thread_rng().gen_range(0..=2));
-            //         cars.push(car::Car::new(id, origin, direction));
-            //         traffic_light.add_car(traffic_light_controller::SimplifiedCar::new(
-            //             origin, direction,
-            //         ));
-            //         id += 1;
-            //         if id > 1000 {
-            //             id = 0;
-            //         }
-            //
-            //         spawn_start = time::Instant::now();
-            //     }
-            //
-            //     cars.iter_mut().for_each(|car| {
-            //         car.update(&cars_clone, &mut traffic_light);
-            //     });
-            //
-            //     for i in (0..cars.len()).rev() {
-            //         if cars[i].finished {
-            //             cars.remove(i);
-            //         }
-            //     }
-            // }
 
             cars.iter_mut()
                 .for_each(|car| car.draw(&cars_clone, &context, graphics));
@@ -223,17 +186,24 @@ fn main() {
 
         if let Some(args) = event.update_args() {
             if !paused {
+                // To fix waiting times not be consistent at lower frame rates, if the dt is ever
+                // different than the target dt, we can add/subtract from all of the delays
+                let target_dt = 1.0 / 120.0;
+                let dt = args.dt;
+                // When the actual dt is greater than the target dt, we need to add to the delays
+                traffic_light.fix_delays(dt, target_dt);
+
                 let cars_clone = cars.clone();
                 traffic_light.update();
 
                 if spawn_start.elapsed() >= spawn_increment {
-                    let minimum_time = 400.0;
+                    let minimum_time = 300.0;
                     spawn_increment = time::Duration::from_millis(
-                        (spawn_increment.as_millis() as f64 * 0.9975).max(minimum_time) as u64,
+                        (spawn_increment.as_millis() as f64 * 0.997).max(minimum_time) as u64,
                     );
 
                     let mut origin = origins[rand::thread_rng().gen_range(0..origins.len())];
-                    if spawn_increment.as_millis() <= 700 {
+                    if spawn_increment.as_millis() <= 600 {
                         origin = origins[origin_index];
                         origin_index = (origin_index + 1) % origins.len();
                     }
